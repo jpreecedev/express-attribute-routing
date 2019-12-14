@@ -33,12 +33,24 @@ function loadRoutesFromControllers(path: string) {
       Object.keys(instance[controllerName].prototype).includes(verb)
     );
 
-    methods.forEach(method => {
+    const constructRoute = (method: string) => {
+      let baseRoute = `/${namespace}`;
+      const instanceMethod = instance[controllerName].prototype[method];
+      if (instanceMethod._routeParams) {
+        if (baseRoute === "/") {
+          baseRoute = `/${instanceMethod._routeParams}`;
+        } else {
+          baseRoute = `${baseRoute}/${instanceMethod._routeParams}`;
+        }
+      }
+
       router[PermittedVerbs[method]](
-        `/${namespace}`,
+        baseRoute,
         instance[controllerName].prototype[method]
       );
-    });
+    };
+
+    methods.forEach(constructRoute);
 
     result.push(router);
   });
