@@ -29,9 +29,7 @@ function loadRoutesFromControllers(path: string) {
     const router = Router();
     const namespace = getNamespace(controllerName.replace("Controller", ""));
 
-    const methods = Object.keys(PermittedVerbs).filter(verb =>
-      Object.keys(instance[controllerName].prototype).includes(verb)
-    );
+    const methods = Object.keys(instance[controllerName].prototype);
 
     const constructRoute = (method: string) => {
       let baseRoute = `/${namespace}`;
@@ -44,12 +42,14 @@ function loadRoutesFromControllers(path: string) {
         }
       }
 
-      router[PermittedVerbs[method]](
-        baseRoute,
-        instance[controllerName].prototype[method]
-      );
+      const mappedHttpMethod = instanceMethod._verb || PermittedVerbs[method];
+      if (mappedHttpMethod) {
+        router[mappedHttpMethod](
+          baseRoute,
+          instance[controllerName].prototype[method]
+        );
+      }
     };
-
     methods.forEach(constructRoute);
 
     result.push(router);
